@@ -81,6 +81,7 @@ public class JSONSerializer {
                 sb.append(serialize(value, addType)).append(',');
             }
             last = sb.length() - 1;
+            //判断是好的
             if (sb.charAt(last) == ',') {
                 sb.deleteCharAt(last);
             }
@@ -114,6 +115,7 @@ public class JSONSerializer {
     }
 
     /**
+     * TODO 这是我比较关心的地方,解析的过程还是挺复杂的,需要考虑的情况要很多很全面,需要花很长的时间,大致了解就行,没必要死磕
      * 只返回JSON的标准类型：String，Number，True/False/Null，Map，Array
      *
      * @return 标准json类型对象
@@ -127,6 +129,7 @@ public class JSONSerializer {
                     try {
                         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                         if (nextToken() != '}') {
+                            //回退index
                             --position;
                             while (true) {
                                 String key = nextValue().toString();
@@ -134,13 +137,17 @@ public class JSONSerializer {
                                     throw new ParseException(new String(this.buffer), this.position,
                                         "Expected a ':' after a key");
                                 }
+                                //json的标准格式key:value.所以再取值一次就是value
                                 map.put(key, nextValue());
+
+                                //这里的判断不知为何
                                 switch (nextToken()) {
                                     case ';':
                                     case ',':
                                         if (nextToken() == '}') {
                                             return map;
                                         }
+                                        //做了一次nextToken,所以回退
                                         --position;
                                         break;
                                     case '}':
@@ -292,8 +299,14 @@ public class JSONSerializer {
         }
     }
 
+    /**
+     * 找到下一个有效值的index
+     * @return
+     * @throws ArrayIndexOutOfBoundsException
+     */
     private char nextToken() throws ArrayIndexOutOfBoundsException {
         char char1;
+        //position从-1开始, ' '==32
         while ((char1 = this.buffer[++position]) <= ' ' || char1 == '/') {
             switch (char1) {
                 case '/': //注释开始

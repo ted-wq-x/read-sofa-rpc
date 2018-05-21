@@ -76,6 +76,7 @@ public class BeanSerializer {
             }
             return array;
         } else if (bean.getClass().isArray()) {
+            //没用过
             int length = Array.getLength(bean);
             ArrayList<Object> array = new ArrayList<Object>(length);
             for (int i = 0; i < length; ++i) {
@@ -83,6 +84,7 @@ public class BeanSerializer {
             }
             return array;
         } else if (bean instanceof Map) {
+            //value需要被序列化
             Map map = (Map) bean;
             for (Object key : map.keySet()) {
                 map.put(key, serialize(map.get(key), addType));
@@ -100,6 +102,7 @@ public class BeanSerializer {
 
         Class beanClass = bean.getClass();
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+        //反射获取需要被序列化的方法
         for (Field field : getSerializeFields(beanClass)) {
             Object value = null;
             String key = field.getName();
