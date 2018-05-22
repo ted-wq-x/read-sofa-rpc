@@ -71,6 +71,7 @@ public class FilterChain implements Invoker {
     private final static ExtensionLoader<Filter>                           EXTENSION_LOADER      = buildLoader();
 
     private static ExtensionLoader<Filter> buildLoader() {
+        //加载完成后调用，解析AutoActive注解
         return ExtensionLoaderFactory.getExtensionLoader(Filter.class, new ExtensionLoaderListener<Filter>() {
             @Override
             public void onLoad(ExtensionClass<Filter> extensionClass) {
@@ -79,6 +80,7 @@ public class FilterChain implements Invoker {
                 AutoActive autoActive = implClass.getAnnotation(AutoActive.class);
                 if (autoActive != null) {
                     String alias = extensionClass.getAlias();
+                    //自动激活表示，默认启用这个拓展
                     if (autoActive.providerSide()) {
                         PROVIDER_AUTO_ACTIVES.put(alias, extensionClass);
                     } else if (autoActive.consumerSide()) {
@@ -120,6 +122,7 @@ public class FilterChain implements Invoker {
                 try {
                     Filter filter = filters.get(i);
                     if (filter.needToLoad(invokerChain)) {
+                        //TODO 这里是需要注意的点，invokerChain是一层一层包装的，最外面的最后才会被调用
                         invokerChain = new FilterInvoker(filter, invokerChain, config);
                         // cache this for filter when async respond
                         loadedFilters.add(filter);
@@ -153,7 +156,7 @@ public class FilterChain implements Invoker {
         // 用户通过自己new实例的方式注入的filter，优先级高
         List<Filter> customFilters = providerConfig.getFilterRef() == null ?
             new ArrayList<Filter>() : new CopyOnWriteArrayList<Filter>(providerConfig.getFilterRef());
-        // 先解析是否有特殊处理
+        // 先解析是否有特殊处理，并删除customFilters中被exclude的Filter
         HashSet<String> excludes = parseExcludeFilter(customFilters);
 
         // 准备数据：用户通过别名的方式注入的filter，需要解析

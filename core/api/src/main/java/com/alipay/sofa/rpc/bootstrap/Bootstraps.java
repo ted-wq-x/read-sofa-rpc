@@ -46,6 +46,7 @@ public class Bootstraps {
             bootstrap = RpcConfigs.getStringValue(RpcOptions.DEFAULT_PROVIDER_BOOTSTRAP);
             providerConfig.setBootstrap(bootstrap);
         }
+        // 2. from方法使用自己的SPI加载默认的ProviderBootstrap
         ProviderBootstrap providerBootstrap = ExtensionLoaderFactory.getExtensionLoader(ProviderBootstrap.class)
             .getExtension(bootstrap, new Class[] { ProviderConfig.class }, new Object[] { providerConfig });
         return (ProviderBootstrap<T>) providerBootstrap;

@@ -68,6 +68,7 @@ public class RpcConfigs {
             loadCustom("META-INF/sofa-rpc/rpc-config.json");
 
             // load system properties
+            //-D参数覆盖
             CFG.putAll(new HashMap(System.getProperties())); // 注意部分属性可能被覆盖为字符串
         } catch (Exception e) {
             throw new SofaRpcRuntimeException("Catch Exception when load RpcConfigs", e);

@@ -135,6 +135,7 @@ public class ExtensionLoader<T> {
         this.factory = extensible.singleton() ? new ConcurrentHashMap<String, T>() : null;
         this.all = new ConcurrentHashMap<String, ExtensionClass<T>>();
         if (autoLoad) {
+            //可以看出，加载的方式没有使用java提供的spi工具
             List<String> paths = RpcConfigs.getListValue(RpcOptions.EXTENSION_LOAD_PATH);
             for (String path : paths) {
                 loadFromFile(path);

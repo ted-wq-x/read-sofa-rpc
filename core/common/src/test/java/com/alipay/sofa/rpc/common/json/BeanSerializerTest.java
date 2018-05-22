@@ -30,11 +30,10 @@ import java.util.Map;
  *
  * @author <a href=mailto:zhanggeng@howtimeflies.org>GengZhang</a>
  */
-public class
-BeanSerializerTest {
+public class BeanSerializerTest {
 
     @Test
-    public void myTest(){
+    public void myTest() {
         //com.alipay.sofa.rpc.common.json.BeanSerializerTest
         System.out.println(BeanSerializerTest.class.getCanonicalName());
 
@@ -45,7 +44,7 @@ BeanSerializerTest {
         //65
         System.out.println((int) 'A');
 
-        System.out.println((char)31);
+        System.out.println((char) 31);
     }
 
     @Test
