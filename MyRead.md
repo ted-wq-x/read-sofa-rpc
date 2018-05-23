@@ -3,9 +3,12 @@
 [参考wiki](https://github.com/alipay/sofa-rpc/wiki/Structure-Intro)相关内容
 
 重点：<br/>
+
+1. 需要关注的包是core,core-impl,extension-impl
 1. 阅读的入口位于`com.alipay.sofa.rpc.quickstart`包中
 1. core包中是各种基本流程接口、消息、上下文、扩展接口等，很多的默认是实现是在coreImpl和extensionImpl中，默认的实现使用配置文件定义的在
 `com/alipay/sofa/rpc/common/rpc-config-default.json`中，这个配置文件可以自行修改。
+1. 由于使用了bolt做为底层的通信框架（基于netty），暂且对于这部分内容不会讨论（com.alipay.remoting.*）。
 
 
 
@@ -25,7 +28,7 @@ ConsumerConfig.refer():调用
 3. ProviderBootStrap.export():默认实现是DefaultProviderBootstrap，可以设置延迟加载时间，调用内部的doExport()
 - 1. DefaultProviderBootstrap.doExport():中new ProviderProxyInvoker(ProviderConfig)
 - 1. 在上面的构造器中会构造过滤器链，[Filter的调用过程](##Filter的调用过程)
-
+- 1. 构造server并将上一步的调用链注册到server中（默认server是bolt）
 
 
 
@@ -106,8 +109,14 @@ protected FilterChain(List<Filter> filters, FilterInvoker lastInvoker, AbstractI
 
 
 
-1. ConsumerInvoker的作用
-1. ProviderInvoker的作用
+1. ConsumerInvoker的作用：使用client发送数据给server
+1. ProviderInvoker的作用：通过反射调用提供的方法
+
+
+## 使用的算法
+
+1. 在Compressor部分使用了google的snappy算法,该算法在很多下项目中使用如MapReduce,BigTable,RPC...，比较适合永久存储和实时传输等场景。使用的是github开源项目，`sofa-rpc-codec`
+1. 
 
 
 ## 问题
