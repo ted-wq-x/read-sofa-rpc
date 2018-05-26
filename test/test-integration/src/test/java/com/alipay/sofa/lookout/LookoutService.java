@@ -14,14 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.sofa.rpc.proxy;
+package com.alipay.sofa.lookout;
 
 /**
  *
- *
- * @author <a href="mailto:zhanggeng.zg@antfin.com">GengZhang</a>
+ * @author <a href="mailto:lw111072@antfin.com">LiWei.Liangen</a>
  */
-public interface TestInterface {
+public interface LookoutService {
 
-    public String echo(String test);
+    String saySync(String string) throws InterruptedException;
+
+    String sayFuture(String string) throws InterruptedException;
+
+    String sayCallback(String string) throws InterruptedException;
+
+    String sayOneway(String string) throws InterruptedException;
+
 }

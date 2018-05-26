@@ -14,27 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.sofa.rpc.server.bolt;
+package com.alipay.sofa.rpc.tracer.sofatracer.log.digest;
 
-import com.alipay.sofa.rpc.config.ProviderConfig;
-import com.alipay.sofa.rpc.config.ServerConfig;
+import com.alipay.sofa.rpc.core.request.SofaRequest;
+import com.alipay.sofa.rpc.tracer.sofatracer.RpcSofaTracer;
+import org.junit.Test;
 
 /**
  * @author <a href="mailto:zhanggeng.zg@antfin.com">GengZhang</a>
  */
-public class ProtobufServiceServer {
+public class RpcClientDigestSpanEncoderTest {
 
-    public static void main(String[] args) {
-        ServerConfig serverConfig = new ServerConfig()
-            .setProtocol("bolt") // 设置一个协议，默认bolt
-            .setPort(12200) // 设置一个端口，默认12200
-            .setDaemon(false); // 非守护线程
+    private RpcSofaTracer rpcSofaTracer = new RpcSofaTracer();
 
-        ProviderConfig<ProtobufService> providerConfig = new ProviderConfig<ProtobufService>()
-            .setInterfaceId(ProtobufService.class.getName()) // 指定接口
-            .setRef(new ProtobufServiceImpl()) // 指定实现
-            .setServer(serverConfig); // 指定服务端
-
-        providerConfig.export(); // 发布服务
+    @Test
+    public void encode() {
+        RpcSofaTracer tracer = new RpcSofaTracer();
+        tracer.startRpc(new SofaRequest());
     }
 }
