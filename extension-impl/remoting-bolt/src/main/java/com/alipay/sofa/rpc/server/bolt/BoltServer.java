@@ -41,38 +41,38 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Bolt server 
+ * Bolt server
  *
  * @author <a href="mailto:zhanggeng.zg@antfin.com">GengZhang</a>
  */
 @Extension("bolt")
 public class BoltServer implements Server {
 
-    private static final Logger    LOGGER     = LoggerFactory.getLogger(BoltServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BoltServer.class);
 
     /**
      * 是否已经启动
      */
-    protected volatile boolean     started;
+    protected volatile boolean started;
 
     /**
      * Bolt服务端
      */
-    protected RemotingServer       remotingServer;
+    protected RemotingServer remotingServer;
 
     /**
      * 服务端配置
      */
-    protected ServerConfig         serverConfig;
+    protected ServerConfig serverConfig;
 
     /**
      *
      */
-    BoltServerProcessor            boltServerProcessor;
-    /**
+    BoltServerProcessor boltServerProcessor;
+    /**volatile
      * 业务线程池
      */
-    protected ThreadPoolExecutor   bizThreadPool;
+    protected ThreadPoolExecutor bizThreadPool;
 
     /**
      * Invoker列表，接口--> Invoker
@@ -90,7 +90,7 @@ public class BoltServer implements Server {
     protected ThreadPoolExecutor initThreadPool(ServerConfig serverConfig) {
         ThreadPoolExecutor threadPool = BusinessPool.initPool(serverConfig);
         threadPool.setThreadFactory(new NamedThreadFactory(
-            "BOLT-BIZ-" + serverConfig.getPort(), serverConfig.isDaemon()));
+                "BOLT-BIZ-" + serverConfig.getPort(), serverConfig.isDaemon()));
         threadPool.setRejectedExecutionHandler(new SofaRejectedExecutionHandler());
         if (serverConfig.isPreStartCore()) { // 初始化核心线程池
             threadPool.prestartAllCoreThreads();
@@ -113,13 +113,14 @@ public class BoltServer implements Server {
                 if (remotingServer.start(serverConfig.getBoundHost())) {
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info("Bolt server has been bind to {}:{}", serverConfig.getBoundHost(),
-                            serverConfig.getPort());
+                                serverConfig.getPort());
                     }
                 } else {
                     throw new SofaRpcRuntimeException("Failed to start bolt server, see more detail from bolt log.");
                 }
                 started = true;
 
+                //触发事件
                 if (EventBus.isEnable(ServerStartedEvent.class)) {
                     EventBus.post(new ServerStartedEvent(serverConfig, bizThreadPool));
                 }
@@ -132,6 +133,10 @@ public class BoltServer implements Server {
         }
     }
 
+    /**
+     * 使用的是bolt项目
+     * @return
+     */
     protected RemotingServer initRemotingServer() {
         // 绑定到端口
         RemotingServer remotingServer = new RpcServer(serverConfig.getPort());
@@ -203,10 +208,10 @@ public class BoltServer implements Server {
                 long start = RpcRuntimeContext.now();
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("There are {} call in processing and {} call in queue, wait {} ms to end",
-                        count, bizThreadPool.getQueue().size(), stopTimeout);
+                            count, bizThreadPool.getQueue().size(), stopTimeout);
                 }
                 while ((count.get() > 0 || bizThreadPool.getQueue().size() > 0)
-                    && RpcRuntimeContext.now() - start < stopTimeout) { // 等待返回结果
+                        && RpcRuntimeContext.now() - start < stopTimeout) { // 等待返回结果
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException ignore) {

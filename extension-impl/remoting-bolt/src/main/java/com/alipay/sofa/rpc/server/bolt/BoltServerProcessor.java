@@ -216,6 +216,14 @@ public class BoltServerProcessor extends AsyncUserProcessor<SofaRequest> {
         }
     }
 
+    /**
+     * 不知道为什么需要切换类加载
+     * @param serviceName
+     * @param invoker
+     * @param request
+     * @return
+     * @throws SofaRpcException
+     */
     private SofaResponse doInvoke(String serviceName, Invoker invoker, SofaRequest request) throws SofaRpcException {
         // 开始调用，先记下当前的ClassLoader
         ClassLoader rpcCl = Thread.currentThread().getContextClassLoader();

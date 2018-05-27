@@ -113,6 +113,92 @@ protected FilterChain(List<Filter> filters, FilterInvoker lastInvoker, AbstractI
 1. ProviderInvoker的作用：通过反射调用提供的方法
 
 
+## 事件总线的设计
+
+核心类是:`EventBus`,该类保存所有的事件和订阅者,使用并发容器,
+
+```java
+    // 这里有一个Event接口(标志性接口)和Subscriber抽象类
+    private final static ConcurrentHashMap<Class<? extends Event>, CopyOnWriteArraySet<Subscriber>> SUBSCRIBER_MAP = new ConcurrentHashMap<Class<? extends Event>, CopyOnWriteArraySet<Subscriber>>();
+
+    public static void post(final Event event) {
+        if (!isEnable()) {
+            return;
+        }
+        CopyOnWriteArraySet<Subscriber> subscribers = SUBSCRIBER_MAP.get(event.getClass());
+        if (CommonUtils.isNotEmpty(subscribers)) {
+            for (final Subscriber subscriber : subscribers) {
+                if (subscriber.isSync()) {
+                    handleEvent(subscriber, event);
+                } else { 
+                    // 异步
+                    final RpcInternalContext context = RpcInternalContext.peekContext();
+                    AsyncRuntime.getAsyncThreadPool().execute(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    // 使用ThreadLocal保存上下文参数
+                                    RpcInternalContext.setContext(context);
+                                    handleEvent(subscriber, event);
+                                } catch (Exception e) {
+                                    RpcInternalContext.removeContext();
+                                }
+                            }
+                        });
+                }
+            }
+        }
+    }
+
+    private static void handleEvent(final Subscriber subscriber, final Event event) {
+        try {
+            subscriber.onEvent(event);
+        } catch (Throwable e) {
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Handle " + event.getClass() + " error", e);
+            }
+        }
+    }
+```
+
+这个是比较关键的地方,保存之间的关系.而对于注册的方式是手动的进行注册那些事件和订阅者,由于使用的是标志性接口所以在具体的订阅者这里需要明白处理哪些事件.感觉设计的有点丑陋.
+
+这里有个很精妙的方法:
+```java
+   public static void register(Class<? extends Event> eventClass, Subscriber subscriber) {
+        CopyOnWriteArraySet<Subscriber> set = SUBSCRIBER_MAP.get(eventClass);
+        if (set == null) {
+            set = new CopyOnWriteArraySet<Subscriber>();
+            // 这里有点意思,判断了两次是不是null,使用无锁的方式保证了线程安全性
+            // 由于putIfAbsent是原子性的,所以只有一个线程会放成功返回null,其他的返回old,这是就要让set=old
+            CopyOnWriteArraySet<Subscriber> old = SUBSCRIBER_MAP.putIfAbsent(eventClass, set);
+            //这里的判断null是不需要保证线程安全性的,因为没有remove方法
+            if (old != null) {
+                set = old;
+            }
+        }
+        set.add(subscriber);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Register subscriber: {} of event: {}.", subscriber, eventClass);
+        }
+    }
+```
+
+再次使用`putIfAbsent()`方法,保证只有一个初始化的set被放到map中,使用无锁的方式保证了安全性,此处的细节值得学习!
+
+## 客户端的调用过程
+
+由于服务端的调用比较简单所有就不介绍了.
+
+
+
+
+
+
+
+
+
 ## 使用的算法
 
 1. 在Compressor部分使用了google的snappy算法,该算法在很多下项目中使用如MapReduce,BigTable,RPC...，比较适合永久存储和实时传输等场景。使用的是github开源项目，`sofa-rpc-codec`
@@ -131,6 +217,9 @@ protected FilterChain(List<Filter> filters, FilterInvoker lastInvoker, AbstractI
 1. 如何实现自定义拓展。<br/>
 使用java的SPI机制，但是没有是会用java原生提供的工具而是自己写的，在`com.alipay.sofa.rpc.ext.ExtensionLoader`中。由于是自己的解析方式，所以文件的格式
 更加的灵活，能够满足自定义的需求。
+
+1. 在服务端提供服务的时候,使用反射调用代码,为什么需要切换线程的类加载器.(BoltServerProcessor#doInvoke())
+> 使用的是服务的classLoader,也就是说服务的类加载可能存在多个,但是在ReflectCache.registerServiceClassLoader()上没找到完整的单元测试,所以不是很明白道理这种设计是为了什么样的应用场景.
 
 
 
