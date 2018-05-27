@@ -83,7 +83,7 @@ public class RpcRuntimeContext {
     private final static ConcurrentHashSet<ConsumerBootstrap> REFERRED_CONSUMER_CONFIGS = new ConcurrentHashSet<ConsumerBootstrap>();
 
     /**
-     * 关闭资源的钩子
+     * 关闭资源的钩子（钩子的）
      */
     private final static List<Destroyable.DestroyHook>        DESTROY_HOOKS             = new CopyOnWriteArrayList<Destroyable.DestroyHook>();
 
@@ -128,7 +128,7 @@ public class RpcRuntimeContext {
     }
 
     /**
-     * 销毁方法
+     * 销毁方法，做的事情还是挺多的
      *
      * @param active 是否主动销毁
      */
@@ -138,6 +138,7 @@ public class RpcRuntimeContext {
         for (Destroyable.DestroyHook destroyHook : DESTROY_HOOKS) {
             destroyHook.preDestroy();
         }
+        //获取provider的配置信息
         List<ProviderConfig> providerConfigs = new ArrayList<ProviderConfig>();
         for (ProviderBootstrap bootstrap : EXPORTED_PROVIDER_CONFIGS) {
             providerConfigs.add(bootstrap.getProviderConfig());
@@ -146,6 +147,7 @@ public class RpcRuntimeContext {
         List<Registry> registries = RegistryFactory.getRegistries();
         if (CommonUtils.isNotEmpty(registries) && CommonUtils.isNotEmpty(providerConfigs)) {
             for (Registry registry : registries) {
+                //调用别注册的unRegister方法
                 registry.batchUnRegister(providerConfigs);
             }
         }

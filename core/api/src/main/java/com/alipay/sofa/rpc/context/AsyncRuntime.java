@@ -76,6 +76,7 @@ public class AsyncRuntime {
                     RejectedExecutionHandler handler = new RejectedExecutionHandler() {
                         private int i = 1;
 
+                        //每7次打印下日志
                         @Override
                         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
                             if (i++ % 7 == 0) {

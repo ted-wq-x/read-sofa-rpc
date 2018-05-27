@@ -126,8 +126,8 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig<T, ProviderConfig
     protected int                                                   concurrents         = getIntValue(PROVIDER_CONCURRENTS);
 
     /**
-     * 同一个服务（接口协议uniqueId相同）的最大发布次数，防止由于代码bug导致重复发布。注意：后面的发布可能会覆盖前面的实现，-1表示不检查
      *
+     * 同一个服务（接口协议uniqueId相同）的最大发布次数，防止由于代码bug导致重复发布。注意：后面的发布可能会覆盖前面的实现，-1表示不检查
      * @since 5.2.0
      */
     protected int                                                   repeatedExportLimit = getIntValue(PROVIDER_REPEATED_EXPORT_LIMIT);
@@ -519,6 +519,7 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig<T, ProviderConfig
      */
     public synchronized void export() {
         if (providerBootstrap == null) {
+            // 1.
             providerBootstrap = Bootstraps.from(this);
         }
         providerBootstrap.export();

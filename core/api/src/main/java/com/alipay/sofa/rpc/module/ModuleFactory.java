@@ -71,7 +71,7 @@ public class ModuleFactory {
     }
 
     /**
-     * 加载全部模块
+     * 加载全部模块，调用模块的install()
      */
     public static void installModules() {
         ExtensionLoader<Module> loader = ExtensionLoaderFactory.getExtensionLoader(Module.class);

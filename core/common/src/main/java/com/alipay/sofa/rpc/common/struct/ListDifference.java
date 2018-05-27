@@ -58,6 +58,7 @@ public class ListDifference<T> {
             return;
         }
         boolean switched = false;
+        //左边只放最多的
         if (left.size() < right.size()) { // 做优化，比较大小，只遍历少的
             List<? extends T> tmp = left;
             left = right;
