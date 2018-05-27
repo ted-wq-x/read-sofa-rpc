@@ -62,7 +62,7 @@ public class EventBus {
     }
 
     /**
-     * 某中事件的订阅者
+     * 某中事件的订阅者,事件=>订阅者
      */
     private final static ConcurrentHashMap<Class<? extends Event>, CopyOnWriteArraySet<Subscriber>> SUBSCRIBER_MAP = new ConcurrentHashMap<Class<? extends Event>, CopyOnWriteArraySet<Subscriber>>();
 
@@ -76,6 +76,7 @@ public class EventBus {
         CopyOnWriteArraySet<Subscriber> set = SUBSCRIBER_MAP.get(eventClass);
         if (set == null) {
             set = new CopyOnWriteArraySet<Subscriber>();
+            // 这里有点意思,判断了两次是不是null,这样能够线程安全吗?
             CopyOnWriteArraySet<Subscriber> old = SUBSCRIBER_MAP.putIfAbsent(eventClass, set);
             if (old != null) {
                 set = old;
